@@ -1,0 +1,100 @@
+# MOVIES DATA ANALYSIS PROJECT — GOOGLE COLAB VERSION
+# Import Required Libraries 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from google.colab import files
+import io
+
+# STEP 1: UPLOAD YOUR CSV FILE
+print("Please upload your movies_data.csv file")
+uploaded = files.upload()
+
+file_name = list(uploaded.keys())[0]
+df = pd.read_csv(io.BytesIO(uploaded[file_name]))
+
+# Display dataset preview 
+print("\n File loaded successfully!\n")
+print("First 5 rows of dataset:")
+print(df.head(), "\n")
+
+print("Dataset Info:")
+print(df.info(), "\n")
+
+# STEP 2: DATA CLEANING
+
+# Handle missing ratings with mean
+mean_rating = df['rating'].mean()
+df['rating'].fillna(mean_rating, inplace=True)
+
+# Replace blank or missing genres with "Unknown"
+df['genre'].replace('', np.nan, inplace=True)
+df['genre'].fillna('Unknown', inplace=True)
+
+#  Q1: Compute average rating by genre [CO1, BL3]
+
+avg_rating_by_genre = df.groupby('genre')['rating'].mean().sort_values(ascending=False)
+print(" Q1: Average Rating by Genre:\n")
+print(avg_rating_by_genre, "\n")
+
+#  Q2: Identify most reviewed movies [CO2, BL4]
+
+most_reviewed = df.sort_values(by='reviews_count', ascending=False).head(10)
+print(" Q2: Top 10 Most Reviewed Movies:\n")
+print(most_reviewed[['title', 'reviews_count', 'rating']], "\n")
+
+# Q3: Replace blank genre values with 'Unknown' [CO3, BL3]
+# (Handled above, verifying)
+
+unknown_count = df[df['genre'] == 'Unknown'].shape[0]
+print(f" Q3: Number of movies with genre='Unknown': {unknown_count}\n")
+
+# Q4: Compare rating trends across decades [CO4, BL4]
+
+# Create a 'decade' column
+df['decade'] = (df['release_year'] // 10) * 10
+
+# Compute average rating per decade
+decade_trends = df.groupby('decade')['rating'].mean()
+print(" Q4: Average Rating by Decade:\n")
+print(decade_trends, "\n")
+
+# Q5: Visualize genre distribution & rating comparison [CO5, BL5]
+
+# Set plot style
+sns.set(style="whitegrid", palette="muted")
+
+plt.figure(figsize=(15, 6))
+
+# Genre Distribution 
+plt.subplot(1, 2, 1)
+sns.countplot(y='genre', data=df, order=df['genre'].value_counts().index, palette='viridis')
+plt.title("Genre Distribution")
+plt.xlabel("Count of Movies")
+plt.ylabel("Genre")
+
+#  Rating Comparison by Genre 
+plt.subplot(1, 2, 2)
+sns.boxplot(x='rating', y='genre', data=df, palette='magma')
+plt.title("Rating Comparison by Genre")
+plt.xlabel("Rating")
+plt.ylabel("Genre")
+
+plt.tight_layout()
+plt.show()
+
+#  Rating Trends Across Decades 
+plt.figure(figsize=(10, 5))
+sns.lineplot(x='decade', y='rating', data=df, marker='o', linewidth=2)
+plt.title("Average Rating Trends Across Decades")
+plt.xlabel("Decade")
+plt.ylabel("Average Rating")
+plt.grid(True)
+plt.show()
+
+# Summary Output
+#
+
+print(" Data Analysis Completed Successfully!")
+print("You have now answered all 5 questions (Q1–Q5) with visualizations.")
